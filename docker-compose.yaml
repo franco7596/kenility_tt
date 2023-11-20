@@ -8,13 +8,16 @@ services:
     # environment:
     #   - MONGO_INITDB_ROOT_USERNAME=root
     #   - MONGO_INITDB_ROOT_PASSWORD=root
-  
+
   backend:
     build: .
     volumes:
       - images:/app/images
       - /app/node_modules
-      - .:/app
+      - ./src:/app/src
+    environment:
+      - DB_URL=mongodb://database:27017/nest
+      - JWT_SECRET=SECRET123
     ports:
       - '3000:3000'
     depends_on:
