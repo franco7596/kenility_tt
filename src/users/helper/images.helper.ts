@@ -13,7 +13,7 @@ export const renameImage = (req, file, callback)=>{
 export const fileFilter =(req, file, callback)=>{
 
     if(!file.originalname.match(/\.(jpg|jpeg|png|gif)$/)){
-        return callback( new HttpException('Invalid format type', 400), false)
+        return callback( new HttpException('Invalid format type for image', 400), false)
     }
 
     callback(null,true)

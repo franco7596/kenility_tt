@@ -1,6 +1,6 @@
-import { Controller, Get, Post, Body, Param, UseGuards, UseInterceptors, UploadedFile, Res, Req  } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, UseGuards, UseInterceptors, UploadedFile, Res, Req, HttpException  } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { CreateUserDto } from './dto/create-user.dto';
+import { CreateUserDto, CreateUserWithoutImageDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { JwtAuthGuard } from '../token/jwt-auth.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -16,12 +16,10 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   create(
     @UploadedFile() file,
-    @Body('name') name: string,
-    @Body('last_name') last_name: string,
-    @Body('address') address: string,
+    @Body() createUserWithoutImageDto: CreateUserWithoutImageDto,  
     @Req() req: Request
     ) {
-      const createUserDto: CreateUserDto = {name, last_name, address, profilePicture: getURL(req, file.filename)}
+      const createUserDto: CreateUserDto = {...createUserWithoutImageDto, profilePicture: getURL(req, file.filename)}
     return this.usersService.create( createUserDto);
   }
 
@@ -46,14 +44,16 @@ export class UsersController {
   @Post(':id')
   @UseInterceptors(FileInterceptor('profilePicture'))
   @UseGuards(JwtAuthGuard)
-  update(@Param('id') id: string, @UploadedFile() file,     
-  @Body('name') name: string,
-  @Body('last_name') last_name: string,
+  update(@Param('id') id: string, @UploadedFile() file,  
+  @Body() editUserWithoutImageDto: CreateUserWithoutImageDto,    
   @Body('profilePicture') profilePicture: string,
-  @Body('address') address: string,
   @Req() req: Request) {
-    if(!file) return this.usersService.update(id, {name, last_name, address, profilePicture});
-    const updateUserDto: UpdateUserDto = {name, last_name, address, profilePicture: getURL(req, file.filename)}
+    if(!file){
+      if(profilePicture)return this.usersService.update(id, {...editUserWithoutImageDto, profilePicture});
+      throw new HttpException('profilePicture should not be empty', 404);
+    } 
+      
+    const updateUserDto: UpdateUserDto = {...editUserWithoutImageDto, profilePicture: getURL(req, file.filename)}
     return this.usersService.update(id, updateUserDto);
   }
 
