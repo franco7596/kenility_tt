@@ -6,7 +6,7 @@ import { User, UserSchema } from './schema/users.schema';
 import { jwtStrategy } from 'src/token/jwt.stategy';
 import { MulterModule } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
-import { renameImage } from './helper/images.helper';
+import { fileFilter, renameImage } from './helper/images.helper';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 
@@ -22,7 +22,8 @@ import { join } from 'path';
     storage: diskStorage({
       destination: './images',
       filename: renameImage
-    })
+    }),
+    fileFilter: fileFilter
   }),
   ServeStaticModule.forRoot({
     rootPath: join(__dirname, '..', '..', 'images'),

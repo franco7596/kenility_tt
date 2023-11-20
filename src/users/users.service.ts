@@ -4,15 +4,14 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User, UserDocument } from './schema/users.schema';
 import { Model } from 'mongoose'
-import {getURL} from './helper/getURL.helper'
-import { Request, Response } from 'express';
+import {  Response } from 'express';
 
 @Injectable()
 export class UsersService {
   constructor(@InjectModel(User.name) private userModule: Model<UserDocument>){}
 
-  async create(createUserDto: CreateUserDto, req: Request) {
-    const userCreated = await this.userModule.create({...createUserDto, profilePicture: getURL(req, createUserDto.profilePicture)})
+  async create(createUserDto: CreateUserDto) {
+    const userCreated = await this.userModule.create(createUserDto)
     return userCreated;
   }
 
@@ -23,15 +22,22 @@ export class UsersService {
   
   async findOne(id: string) {
     const user = await this.userModule.findById({ _id: id })
-    if(!user) throw new HttpException('not found', 404)
+    if(!user) throw new HttpException('User not found', 404)
     return user
   }
 
   async update(id: string, updateUserDto: UpdateUserDto) {
-    const user = await this.userModule.findById({ _id: id })
-    if(!user) throw new HttpException('not found', 404)
-    // const userEdited = await this.userModule.updateOne()
-    return `This action updates a #${id} user`;
+    const existingUser = await this.userModule.findByIdAndUpdate(
+      id,
+      { $set: updateUserDto },
+      { new: true } 
+    );
+
+    if (!existingUser) { 
+      throw new HttpException('User not found', 404);
+    }
+
+    return existingUser;
   }
 
   findImage(name: string, res: Response){

@@ -1,3 +1,5 @@
+import { HttpException } from '@nestjs/common';
+
 export const renameImage = (req, file, callback)=>{
     const name = file.originalname.split('.')[0];
     const fileName = file.originalname;
@@ -6,4 +8,14 @@ export const renameImage = (req, file, callback)=>{
         .map(() => Math.round(Math.random() * 16).toString(16))
         .join('')
     callback(null, `${name}-${randomName}${fileName}`)
+}
+
+export const fileFilter =(req, file, callback)=>{
+
+    if(!file.originalname.match(/\.(jpg|jpeg|png|gif)$/)){
+        return callback( new HttpException('Invalid format type', 400), false)
+    }
+
+    callback(null,true)
+
 }
